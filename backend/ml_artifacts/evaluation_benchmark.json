@@ -1,0 +1,81 @@
+{
+  "evaluation_metadata": {
+    "total_scenarios_evaluated": 200,
+    "total_checkpoint_evaluations": 1000,
+    "execution_time_seconds": 4.37,
+    "timestamp": "2026-11-02T15:20:34Z"
+  },
+  "regression_comparison": {
+    "fixed_volume_baseline": {
+      "mae": 116.03,
+      "rmse": 134.52,
+      "improvement_pct": 0.0
+    },
+    "linear_regression": {
+      "mae": 41.28,
+      "rmse": 84.49,
+      "improvement_pct": 64.43
+    },
+    "gradient_boosting": {
+      "mae": 42.03,
+      "rmse": 81.32,
+      "improvement_pct": 63.77
+    }
+  },
+  "uncertainty_intervals": {
+    "picp_coverage_pct": 66.0,
+    "average_interval_width": 48.52
+  },
+  "anomaly_detection": {
+    "precision": 0.8944,
+    "recall": 0.9191,
+    "f1_score": 0.9066,
+    "false_alert_rate_pct": 11.16,
+    "total_evaluated_instances": 1000,
+    "true_positives": 466,
+    "false_positives": 55,
+    "true_negatives": 438,
+    "false_negatives": 41,
+    "per_fault_detection_pct": {
+      "flow_drop": 100.0,
+      "none": 88.8,
+      "sensor_disconnection": 100.0,
+      "sensor_drift": 65.3,
+      "tds_spike": 100.0
+    },
+    "confusion_matrix": {
+      "categories": [
+        "NORMAL",
+        "GRADUAL_WEAR",
+        "ABRUPT_ANOMALY",
+        "INSUFFICIENT_DATA"
+      ],
+      "matrix": [
+        [
+          438,
+          26,
+          29,
+          0
+        ],
+        [
+          41,
+          69,
+          8,
+          0
+        ],
+        [
+          0,
+          235,
+          28,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          126
+        ]
+      ]
+    }
+  }
+}

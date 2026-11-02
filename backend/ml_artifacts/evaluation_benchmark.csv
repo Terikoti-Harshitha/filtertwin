@@ -1,0 +1,19 @@
+# FilterTwin Model Evaluation Benchmark Report
+# Timestamp: 2026-11-02T15:20:34Z
+# Scenarios Evaluated: 200
+# Checkpoint Observations: 1000
+
+Model,MAE (days),RMSE (days),Improvement vs Baseline (%)
+Fixed-Volume Baseline,116.03,134.52,0.0%
+Linear Regression,41.28,84.49,64.43%
+Gradient Boosted Trees,42.03,81.32,63.77%
+
+Uncertainty Metric,Value
+Prediction Interval Coverage (PICP),66.0%
+Average Interval Width (days),48.52
+
+Anomaly Detection Metric,Value
+Precision,0.8944
+Recall,0.9191
+F1-Score,0.9066
+False Alert Rate,11.16%
