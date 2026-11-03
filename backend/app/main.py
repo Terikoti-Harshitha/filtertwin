@@ -3,12 +3,12 @@ FilterTwin FastAPI Application Entry Point.
 Explainable Filter Diagnostics and Guided Maintenance.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from app.config import settings
-from app.database.session import engine, SessionLocal
+from app.database.session import engine, SessionLocal, get_db
 from app.database.base import Base
 from app.models.entities import PurifierProfile, FilterProfile, SimulationRun
 from app.api.routes import purifiers, simulations, diagnostics, evaluations, maintenance, models, health
@@ -91,6 +91,11 @@ app.include_router(diagnostics.router, prefix=settings.API_V1_STR)
 app.include_router(evaluations.router, prefix=settings.API_V1_STR)
 app.include_router(maintenance.router, prefix=settings.API_V1_STR)
 app.include_router(models.router, prefix=settings.API_V1_STR)
+
+@app.post(f"{settings.API_V1_STR}/telemetry/ingest", tags=["Telemetry"], status_code=201)
+def direct_telemetry_ingest(data: simulations.TelemetryIngestRequest, db: SessionLocal = Depends(get_db)):
+    """Direct alias endpoint for ESP32 / Wokwi virtual hardware telemetry ingestion."""
+    return simulations.ingest_telemetry(data, db)
 
 if __name__ == "__main__":
     import uvicorn

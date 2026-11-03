@@ -63,6 +63,9 @@ export const api = {
 
   // Models
   getModels: () => request('/models'),
+
+  // IoT Telemetry Ingestion (Wokwi / Hardware ESP32)
+  ingestTelemetry: (data) => request('/simulations/telemetry/ingest', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export default api;

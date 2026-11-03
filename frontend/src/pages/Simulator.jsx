@@ -8,7 +8,12 @@ import {
   Cpu,
   Layers,
   Activity,
-  CheckCircle2
+  CheckCircle2,
+  Wifi,
+  Radio,
+  ExternalLink,
+  Send,
+  Terminal
 } from 'lucide-react';
 import { usePurifier } from '../context/PurifierContext';
 import api from '../services/api';
@@ -74,6 +79,34 @@ export default function Simulator() {
       setStatusMsg({ type: 'error', text: `Failed to run simulation: ${err.message}` });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [ingestingPacket, setIngestingPacket] = useState(false);
+
+  const handleTestIotPacket = async () => {
+    setIngestingPacket(true);
+    try {
+      const res = await api.ingestTelemetry({
+        device_id: 'wokwi-esp32-node',
+        flow_rate_lpm: 1.95,
+        inlet_tds_ppm: 560.0,
+        outlet_tds_ppm: 38.0,
+        sensor_status: 'normal'
+      });
+      setStatusMsg({
+        type: 'success',
+        text: `IoT Packet Ingested from ${res.device_id}! Simulated Day updated to ${res.simulated_day}d.`
+      });
+      if (activeSimulation?.id) {
+        const rList = await api.getReadings(activeSimulation.id);
+        setReadings(rList);
+        await refreshDiagnosis();
+      }
+    } catch (err) {
+      setStatusMsg({ type: 'error', text: `Failed to ingest IoT packet: ${err.message}` });
+    } finally {
+      setIngestingPacket(false);
     }
   };
 
@@ -326,6 +359,99 @@ export default function Simulator() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Section: Wokwi ESP32 Virtual Hardware Twin */}
+      <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+              <Cpu className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-white tracking-wide">
+                  Virtual Hardware Twin: Wokwi ESP32 IoT Node
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                  Zero Hardware Required
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 flex items-center gap-1">
+                  <Radio className="w-2.5 h-2.5 animate-pulse text-emerald-400" />
+                  Live Ingestion Ready
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Simulate physical ESP32 microcontrollers, ADC probes, OLED display, and status LEDs directly in your web browser.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleTestIotPacket}
+              disabled={ingestingPacket}
+              className="px-3.5 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-semibold rounded-xl border border-cyan-500/30 flex items-center gap-1.5 transition disabled:opacity-50"
+            >
+              <Send className={`w-3.5 h-3.5 ${ingestingPacket ? 'animate-bounce' : ''}`} />
+              <span>{ingestingPacket ? 'Ingesting...' : 'Test Ingest 1 Packet'}</span>
+            </button>
+            <a
+              href="https://wokwi.com/projects/new/esp32"
+              target="_blank"
+              rel="noreferrer"
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 flex items-center gap-1.5 transition"
+            >
+              <span>Launch Wokwi</span>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+            </a>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2">
+            <div className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <Terminal className="w-3.5 h-3.5 text-teal-400" />
+              <span>1. How to Run in Browser</span>
+            </div>
+            <ol className="text-[11px] text-slate-400 space-y-1 list-decimal list-inside leading-relaxed">
+              <li>Open <a href="https://wokwi.com/projects/new/esp32" target="_blank" rel="noreferrer" className="text-cyan-400 underline">wokwi.com/new/esp32</a></li>
+              <li>Paste <code className="text-teal-300">firmware/wokwi/sketch.ino</code> into Code editor.</li>
+              <li>Paste <code className="text-teal-300">firmware/wokwi/diagram.json</code> into diagram tab.</li>
+              <li>Click the green <strong className="text-emerald-400">Play</strong> button.</li>
+            </ol>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2">
+            <div className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-cyan-400" />
+              <span>2. Virtual Sensors & Pinout</span>
+            </div>
+            <ul className="text-[11px] text-slate-400 space-y-1 list-disc list-inside leading-relaxed">
+              <li><strong className="text-slate-300">Pin 34:</strong> Permeate Flow (0.1–2.5 LPM)</li>
+              <li><strong className="text-slate-300">Pin 35:</strong> Inlet TDS Potentiometer</li>
+              <li><strong className="text-slate-300">Pin 32:</strong> Outlet TDS Potentiometer</li>
+              <li><strong className="text-slate-300">Pin 4:</strong> Membrane Rupture Pushbutton</li>
+              <li><strong className="text-slate-300">I2C (21/22):</strong> SSD1306 128x64 OLED</li>
+            </ul>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2">
+            <div className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <Wifi className="w-3.5 h-3.5 text-emerald-400" />
+              <span>3. Live Network Endpoint</span>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              The ESP32 connects to <strong className="text-emerald-300">Wokwi-GUEST WiFi</strong> and transmits HTTP POST JSON packets to:
+            </p>
+            <div className="p-2 bg-slate-900 border border-slate-800 rounded-lg font-mono text-[10px] text-teal-300 break-all select-all">
+              /api/v1/simulations/telemetry/ingest
+            </div>
+            <p className="text-[10px] text-slate-500">
+              For local runs, use <code className="text-slate-400">ngrok http 8000</code> to give Wokwi a public HTTPS URL.
+            </p>
           </div>
         </div>
       </div>

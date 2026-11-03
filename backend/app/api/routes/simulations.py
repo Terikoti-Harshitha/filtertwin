@@ -10,7 +10,7 @@ from typing import List, Optional
 
 from app.database.session import get_db
 from app.schemas.simulation import (
-    SimulationCreate, FaultInjectRequest, SimulationResponse, ReadingResponse, GroundTruthResponse
+    SimulationCreate, FaultInjectRequest, SimulationResponse, ReadingResponse, GroundTruthResponse, TelemetryIngestRequest
 )
 from app.services.purifier_service import get_purifier_by_id
 from app.services.simulation_service import (
@@ -103,3 +103,55 @@ def reset_simulation(sim_id: str, db: Session = Depends(get_db)):
     run.cumulative_volume_l = 0.0
     db.commit()
     return {"status": "idle", "message": "Simulation reset to day 0"}
+
+@router.post("/telemetry/ingest", status_code=status.HTTP_201_CREATED)
+def ingest_telemetry(data: TelemetryIngestRequest, db: Session = Depends(get_db)):
+    """
+    Ingest live telemetry from physical ESP32 or Wokwi virtual micro-controller.
+    Updates active digital twin and stores sensor reading.
+    """
+    from datetime import datetime
+    from app.models.entities import SensorReading, PurifierProfile, SimulationRun
+
+    run = db.query(SimulationRun).order_by(SimulationRun.created_at.desc()).first()
+    if not run:
+        purifier = db.query(PurifierProfile).first()
+        if not purifier:
+            raise HTTPException(status_code=400, detail="No purifier profile configured.")
+        run, _ = create_and_run_simulation(
+            db, purifier, SimulationCreate(purifier_profile_id=purifier.id, duration_days=30)
+        )
+
+    next_day = round(run.current_day + 0.1, 2)
+    vol = data.cumulative_volume_l if data.cumulative_volume_l is not None else round(run.cumulative_volume_l + (data.flow_rate_lpm * 0.05), 2)
+    rej = data.rejection_percentage if data.rejection_percentage is not None else (
+        round(((data.inlet_tds_ppm - data.outlet_tds_ppm) / data.inlet_tds_ppm) * 100.0, 2) if data.inlet_tds_ppm > 0 else 0.0
+    )
+
+    reading = SensorReading(
+        simulation_run_id=run.id,
+        timestamp=datetime.utcnow().isoformat(),
+        simulated_day=next_day,
+        cumulative_volume_l=vol,
+        flow_rate_lpm=data.flow_rate_lpm,
+        inlet_tds_ppm=data.inlet_tds_ppm,
+        outlet_tds_ppm=data.outlet_tds_ppm,
+        rejection_percentage=rej,
+        sensor_status=data.sensor_status or "normal"
+    )
+    db.add(reading)
+    run.current_day = next_day
+    run.cumulative_volume_l = vol
+    db.commit()
+    db.refresh(reading)
+
+    return {
+        "status": "ingested",
+        "device_id": data.device_id,
+        "reading_id": reading.id,
+        "simulation_id": run.id,
+        "simulated_day": next_day,
+        "flow_rate_lpm": data.flow_rate_lpm,
+        "outlet_tds_ppm": data.outlet_tds_ppm,
+        "rejection_percentage": rej,
+    }

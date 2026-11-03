@@ -122,3 +122,22 @@ def test_evaluations_and_maintenance():
     models_res = client.get("/api/v1/models")
     assert models_res.status_code == 200
     assert len(models_res.json()) >= 3
+
+def test_wokwi_telemetry_ingestion():
+    # Ingest virtual ESP32 sensor reading
+    payload = {
+        "device_id": "wokwi-esp32-unit-test",
+        "flow_rate_lpm": 1.85,
+        "inlet_tds_ppm": 520.0,
+        "outlet_tds_ppm": 45.0,
+        "rejection_percentage": 91.3,
+        "cumulative_volume_l": 500.0,
+        "sensor_status": "normal",
+    }
+    res = client.post("/api/v1/telemetry/ingest", json=payload)
+    assert res.status_code == 201
+    data = res.json()
+    assert data["status"] == "ingested"
+    assert data["device_id"] == "wokwi-esp32-unit-test"
+    assert data["flow_rate_lpm"] == 1.85
+    assert data["rejection_percentage"] == 91.3

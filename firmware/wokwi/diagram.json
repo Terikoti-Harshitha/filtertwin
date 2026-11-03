@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "author": "CoreCraft - FilterTwin",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "board-ssd1306", "id": "oled", "top": -150, "left": 100, "attrs": { "i2cAddress": "0x3c" } },
+    { "type": "wokwi-potentiometer", "id": "pot_inlet_tds", "top": 180, "left": -120, "attrs": { "label": "Inlet TDS (0-1000 ppm)" } },
+    { "type": "wokwi-potentiometer", "id": "pot_outlet_tds", "top": 180, "left": 20, "attrs": { "label": "Outlet TDS (0-500 ppm)" } },
+    { "type": "wokwi-potentiometer", "id": "pot_flow", "top": 180, "left": 160, "attrs": { "label": "Flow Rate (0-3 LPM)" } },
+    { "type": "wokwi-led", "id": "led_normal", "top": -80, "left": -60, "attrs": { "color": "green", "label": "Normal" } },
+    { "type": "wokwi-led", "id": "led_wear", "top": -80, "left": -20, "attrs": { "color": "yellow", "label": "Wear Warning" } },
+    { "type": "wokwi-led", "id": "led_alert", "top": -80, "left": 20, "attrs": { "color": "red", "label": "Abrupt Anomaly" } },
+    { "type": "wokwi-pushbutton", "id": "btn_fault", "top": 100, "left": -120, "attrs": { "color": "red", "label": "Inject Fault" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+
+    [ "esp:GND.1", "oled:GND", "black", [ "v-20", "h40" ] ],
+    [ "esp:3V3", "oled:VCC", "red", [ "v-30", "h60" ] ],
+    [ "esp:22", "oled:SCL", "yellow", [ "v-40", "h80" ] ],
+    [ "esp:21", "oled:SDA", "blue", [ "v-50", "h100" ] ],
+
+    [ "esp:GND.1", "pot_inlet_tds:GND", "black", [ "v20", "h-40" ] ],
+    [ "esp:3V3", "pot_inlet_tds:VCC", "red", [ "v30", "h-60" ] ],
+    [ "esp:34", "pot_inlet_tds:SIG", "green", [ "v40", "h-80" ] ],
+
+    [ "esp:GND.1", "pot_outlet_tds:GND", "black", [ "v20", "h20" ] ],
+    [ "esp:3V3", "pot_outlet_tds:VCC", "red", [ "v30", "h10" ] ],
+    [ "esp:35", "pot_outlet_tds:SIG", "cyan", [ "v40", "h0" ] ],
+
+    [ "esp:GND.2", "pot_flow:GND", "black", [ "v20", "h50" ] ],
+    [ "esp:3V3", "pot_flow:VCC", "red", [ "v30", "h70" ] ],
+    [ "esp:32", "pot_flow:SIG", "purple", [ "v40", "h90" ] ],
+
+    [ "esp:18", "led_normal:A", "green", [ "v-20", "h-20" ] ],
+    [ "esp:GND.1", "led_normal:C", "black", [ "v-10", "h-30" ] ],
+
+    [ "esp:19", "led_wear:A", "yellow", [ "v-20", "h-10" ] ],
+    [ "esp:GND.1", "led_wear:C", "black", [ "v-10", "h-20" ] ],
+
+    [ "esp:23", "led_alert:A", "red", [ "v-20", "h0" ] ],
+    [ "esp:GND.1", "led_alert:C", "black", [ "v-10", "h-10" ] ],
+
+    [ "esp:4", "btn_fault:1.r", "orange", [ "v20", "h-20" ] ],
+    [ "esp:GND.1", "btn_fault:2.r", "black", [ "v20", "h-30" ] ]
+  ]
+}

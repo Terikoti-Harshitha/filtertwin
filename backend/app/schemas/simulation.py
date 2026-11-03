@@ -21,6 +21,15 @@ class FaultInjectRequest(BaseModel):
     start_day: float
     magnitude: float = Field(default=0.5, ge=0.1, le=1.0)
 
+class TelemetryIngestRequest(BaseModel):
+    device_id: Optional[str] = Field(default="wokwi-esp32-01")
+    flow_rate_lpm: float
+    inlet_tds_ppm: float
+    outlet_tds_ppm: float
+    rejection_percentage: Optional[float] = None
+    cumulative_volume_l: Optional[float] = None
+    sensor_status: Optional[str] = "normal"
+
 class ReadingResponse(BaseModel):
     id: Optional[int] = None
     simulation_run_id: str

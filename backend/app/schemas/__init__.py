@@ -1,6 +1,6 @@
 from app.schemas.purifier import PurifierCreate, PurifierUpdate, PurifierResponse
 from app.schemas.simulation import (
-    SimulationCreate, FaultInjectRequest, ReadingResponse, GroundTruthResponse, SimulationResponse
+    SimulationCreate, FaultInjectRequest, ReadingResponse, GroundTruthResponse, SimulationResponse, TelemetryIngestRequest
 )
 from app.schemas.diagnostic import (
     FullDiagnosticResponse, AlertResponse, PredictionDetail, IntervalDetail, DiagnosisDetail, ExplanationResponse
