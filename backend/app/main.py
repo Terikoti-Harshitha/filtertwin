@@ -5,6 +5,7 @@ Explainable Filter Diagnostics and Guided Maintenance.
 
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 import os
 
 from app.config import settings
@@ -93,7 +94,7 @@ app.include_router(maintenance.router, prefix=settings.API_V1_STR)
 app.include_router(models.router, prefix=settings.API_V1_STR)
 
 @app.post(f"{settings.API_V1_STR}/telemetry/ingest", tags=["Telemetry"], status_code=201)
-def direct_telemetry_ingest(data: simulations.TelemetryIngestRequest, db: SessionLocal = Depends(get_db)):
+def direct_telemetry_ingest(data: simulations.TelemetryIngestRequest, db: Session = Depends(get_db)):
     """Direct alias endpoint for ESP32 / Wokwi virtual hardware telemetry ingestion."""
     return simulations.ingest_telemetry(data, db)
 

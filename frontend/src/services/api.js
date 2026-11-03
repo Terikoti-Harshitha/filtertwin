@@ -3,7 +3,10 @@
  * Connects to the open-source FastAPI backend.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE = rawBase.endsWith('/api/v1')
+  ? rawBase
+  : `${rawBase.replace(/\/+$/, '')}/api/v1`;
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;

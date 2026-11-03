@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: filtertwin-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt && python scripts/train_models.py && python scripts/run_evaluation.py"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        sync: false

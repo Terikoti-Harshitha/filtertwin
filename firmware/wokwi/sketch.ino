@@ -1,8 +1,19 @@
 /*
- * FilterTwin - Virtual ESP32 Purifier Telemetry Node
- * Designed for Wokwi Simulation & Physical ESP32 Hardware
- * 
+ * ==============================================================================
+ * FILTERTWIN - ESP32 VIRTUAL PURIFIER TELEMETRY NODE
  * Team: CoreCraft - Lendi Institute of Engineering & Technology
+ * ==============================================================================
+ * 
+ * REQUIRED WOKWI LIBRARIES (To fix "Adafruit_GFX.h: No such file or directory"):
+ * In Wokwi (wokwi.com/projects/new/esp32):
+ * 1. Click the down arrow (v) next to the "sketch.ino" tab at the top.
+ * 2. Click "New File" and name it "libraries.txt".
+ * 3. Add these exact 3 lines inside libraries.txt:
+ *      Adafruit SSD1306
+ *      Adafruit GFX Library
+ *      ArduinoJson
+ * (Alternatively: open the "Library Manager" icon in the left sidebar and search them).
+ * 
  * Pin Connections:
  * - OLED SDA -> GPIO 21
  * - OLED SCL -> GPIO 22
@@ -13,6 +24,7 @@
  * - Normal Status LED (Green)         -> GPIO 18
  * - Wear Warning LED (Yellow)         -> GPIO 19
  * - Anomaly Alert LED (Red)           -> GPIO 23
+ * ==============================================================================
  */
 
 #include <WiFi.h>
@@ -41,8 +53,9 @@ const char* ssid = "Wokwi-GUEST";
 const char* password = "";
 
 // FilterTwin Ingestion Endpoint
-// In Wokwi browser, change to your public ngrok/cloud URL or use mock mode
-const char* backendUrl = "http://host.wokwi.internal:8000/api/v1/telemetry/ingest";
+// Set this to your deployed Render backend URL: https://<your-render-app>.onrender.com/api/v1/telemetry/ingest
+// Or for local testing via ngrok: https://<your-ngrok-id>.ngrok-free.app/api/v1/telemetry/ingest
+const char* backendUrl = "https://filtertwin-backend.onrender.com/api/v1/telemetry/ingest";
 
 // Cumulative tracking
 float cumulativeVolumeL = 450.0;
