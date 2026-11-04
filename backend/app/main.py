@@ -96,6 +96,17 @@ app.include_router(evaluations.router, prefix=settings.API_V1_STR)
 app.include_router(maintenance.router, prefix=settings.API_V1_STR)
 app.include_router(models.router, prefix=settings.API_V1_STR)
 
+@app.get("/", tags=["Root"])
+def root():
+    return {
+        "project": "FilterTwin API",
+        "team": "CoreCraft - Lendi Institute of Engineering & Technology",
+        "status": "online",
+        "version": settings.VERSION,
+        "swagger_docs": "/docs",
+        "telemetry_endpoint": f"{settings.API_V1_STR}/telemetry/ingest"
+    }
+
 @app.get(f"{settings.API_V1_STR}/telemetry/ingest", tags=["Telemetry"])
 def direct_telemetry_info():
     """Direct alias GET endpoint confirming telemetry receiver status for browser visitors."""

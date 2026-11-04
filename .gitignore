@@ -30,6 +30,11 @@ wheels/
 *.db
 *.sqlite3
 
+# Binaries
+*.exe
+ngrok.exe
+frontend/ngrok.exe
+
 # Node / Frontend
 node_modules/
 frontend/dist/

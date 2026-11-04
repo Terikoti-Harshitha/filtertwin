@@ -90,22 +90,17 @@ void setup() {
   // Connect to WiFi (Channel 6 skips scanning in Wokwi and connects in 1-2 seconds)
   Serial.print("Connecting to WiFi: ");
   Serial.println(ssid);
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password, 6);
   
-  int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 25) {
-    delay(500);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(100);
     Serial.print(".");
-    attempts++;
   }
 
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\n[WiFi] Connected successfully!");
-    Serial.print("[WiFi] IP Address: ");
-    Serial.println(WiFi.localIP());
-  } else {
-    Serial.println("\n[WiFi] Handshake taking time, continuing in background...");
-  }
+  Serial.println("\n[WiFi] Connected successfully!");
+  Serial.print("[WiFi] IP Address: ");
+  Serial.println(WiFi.localIP());
 }
 
 void loop() {
@@ -242,7 +237,6 @@ void sendTelemetryHttp(float inlet, float outlet, float flow, float rej, String 
       delete client;
     }
   } else {
-    Serial.println("[WiFi] Reconnecting to Wokwi-GUEST...");
-    WiFi.begin(ssid, password, 6);
+    Serial.println("[WiFi] Waiting for WiFi connection...");
   }
 }
