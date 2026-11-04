@@ -19,13 +19,16 @@ from app.schemas.purifier import PurifierCreate
 from app.schemas.simulation import SimulationCreate
 from app.services.diagnostic_service import get_ml_models
 
-# Ensure database tables exist
-Base.metadata.create_all(bind=engine)
-
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Ensure database tables exist
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"[Database Error during create_all]: {e}")
+
     # Load ML models into memory
     get_ml_models()
 

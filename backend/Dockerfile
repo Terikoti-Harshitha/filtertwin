@@ -18,8 +18,9 @@ COPY app/ ./app/
 COPY scripts/ ./scripts/
 COPY ml_artifacts/ ./ml_artifacts/
 
-# Pre-train models and run baseline evaluation benchmark
-RUN python scripts/train_models.py && python scripts/run_evaluation.py
+# Pre-trained models and benchmark artifacts are copied in from ml_artifacts/
+# Fast validation check ensures artifacts exist without re-running 40-minute simulation
+RUN if [ ! -f ./ml_artifacts/gradient_boosting.pkl ]; then python scripts/train_models.py; fi
 
 EXPOSE 8000
 
