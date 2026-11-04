@@ -33,17 +33,45 @@ def get_ml_models():
     gb_path = os.path.join(settings.ML_ARTIFACTS_DIR, "gradient_boosting.pkl")
     unc_path = os.path.join(settings.ML_ARTIFACTS_DIR, "uncertainty_engine.pkl")
 
-    if _linear_model is None and os.path.exists(lin_path):
-        _linear_model = LinearRegressionRULModel()
-        _linear_model.load(lin_path)
+    def _load_or_retrain():
+        global _linear_model, _gb_model, _unc_engine
+        try:
+            if _linear_model is None and os.path.exists(lin_path):
+                m = LinearRegressionRULModel()
+                m.load(lin_path)
+                _linear_model = m
 
-    if _gb_model is None and os.path.exists(gb_path):
-        _gb_model = GradientBoostingRULModel()
-        _gb_model.load(gb_path)
+            if _gb_model is None and os.path.exists(gb_path):
+                m = GradientBoostingRULModel()
+                m.load(gb_path)
+                _gb_model = m
 
-    if _unc_engine is None and os.path.exists(unc_path):
-        _unc_engine = QuantileUncertaintyEngine()
-        _unc_engine.load(unc_path)
+            if _unc_engine is None and os.path.exists(unc_path):
+                m = QuantileUncertaintyEngine()
+                m.load(unc_path)
+                _unc_engine = m
+        except Exception as exc:
+            print(f"[ML Models] Artifact load failed ({exc}). Retraining models for current environment...")
+            try:
+                from scripts.train_models import train_and_save_all
+                train_and_save_all(num_scenarios=35)
+                # Retry loading freshly trained artifacts
+                if os.path.exists(lin_path):
+                    m = LinearRegressionRULModel()
+                    m.load(lin_path)
+                    _linear_model = m
+                if os.path.exists(gb_path):
+                    m = GradientBoostingRULModel()
+                    m.load(gb_path)
+                    _gb_model = m
+                if os.path.exists(unc_path):
+                    m = QuantileUncertaintyEngine()
+                    m.load(unc_path)
+                    _unc_engine = m
+            except Exception as train_exc:
+                print(f"[ML Models] Fallback training failed ({train_exc})")
+
+    _load_or_retrain()
 
     return _baseline, _linear_model, _gb_model, _unc_engine, _detector
 

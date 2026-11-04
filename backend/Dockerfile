@@ -18,9 +18,8 @@ COPY app/ ./app/
 COPY scripts/ ./scripts/
 COPY ml_artifacts/ ./ml_artifacts/
 
-# Pre-trained models and benchmark artifacts are copied in from ml_artifacts/
-# Fast validation check ensures artifacts exist without re-running 40-minute simulation
-RUN if [ ! -f ./ml_artifacts/gradient_boosting.pkl ]; then python scripts/train_models.py; fi
+# Train models natively in the container environment (takes ~1 second)
+RUN python -c "import sys; sys.path.insert(0, '.'); from scripts.train_models import train_and_save_all; train_and_save_all(num_scenarios=35)"
 
 EXPOSE 8000
 
