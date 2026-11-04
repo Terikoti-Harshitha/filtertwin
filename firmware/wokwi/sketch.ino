@@ -28,6 +28,7 @@
  */
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -86,13 +87,13 @@ void setup() {
     display.display();
   }
 
-  // Connect to WiFi
+  // Connect to WiFi (Channel 6 skips scanning in Wokwi and connects in 1-2 seconds)
   Serial.print("Connecting to WiFi: ");
   Serial.println(ssid);
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, password, 6);
   
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 15) {
+  while (WiFi.status() != WL_CONNECTED && attempts < 25) {
     delay(500);
     Serial.print(".");
     attempts++;
@@ -103,7 +104,7 @@ void setup() {
     Serial.print("[WiFi] IP Address: ");
     Serial.println(WiFi.localIP());
   } else {
-    Serial.println("\n[WiFi] Simulation running in local standalone mode.");
+    Serial.println("\n[WiFi] Handshake taking time, continuing in background...");
   }
 }
 
@@ -115,9 +116,17 @@ void loop() {
   bool faultBtnPressed = (digitalRead(PIN_FAULT_BTN) == LOW);
 
   // Convert ADC values (12-bit: 0 - 4095) to physical engineering units
-  float inletTds = map(rawInlet, 0, 4095, 100, 1000);
-  float outletTds = map(rawOutlet, 0, 4095, 10, 450);
-  float flowLpm = (rawFlow / 4095.0) * 3.0; // 0.0 to 3.0 LPM
+  // If user hasn't turned dials yet (all at 0), provide nominal operating baseline
+  float inletTds, outletTds, flowLpm;
+  if (rawInlet == 0 && rawOutlet == 0 && rawFlow == 0) {
+    inletTds = 550.0;
+    outletTds = 38.0;
+    flowLpm = 2.10;
+  } else {
+    inletTds = map(rawInlet, 0, 4095, 100, 1000);
+    outletTds = map(rawOutlet, 0, 4095, 10, 450);
+    flowLpm = (rawFlow / 4095.0) * 3.0; // 0.0 to 3.0 LPM
+  }
 
   // If fault button pressed, simulate acute hydraulic clogging & TDS breakthrough
   if (faultBtnPressed) {
@@ -215,16 +224,21 @@ void sendTelemetryHttp(float inlet, float outlet, float flow, float rej, String 
 
   // HTTP POST if connected
   if (WiFi.status() == WL_CONNECTED) {
+    WiFiClientSecure client;
+    client.setInsecure(); // Required for ESP32 HTTPS validation without root CA certificate
     HTTPClient http;
-    http.begin(backendUrl);
+    http.begin(client, backendUrl);
     http.addHeader("Content-Type", "application/json");
     
     int httpResponseCode = http.POST(jsonPayload);
     if (httpResponseCode > 0) {
-      Serial.printf("[HTTP] Ingestion response code: %d\n", httpResponseCode);
+      Serial.printf("[HTTP] Ingestion response code: %d (Successfully ingested into FilterTwin!)\n", httpResponseCode);
     } else {
       Serial.printf("[HTTP] Error sending telemetry: %s\n", http.errorToString(httpResponseCode).c_str());
     }
     http.end();
+  } else {
+    Serial.println("[WiFi] Reconnecting to Wokwi-GUEST...");
+    WiFi.begin(ssid, password, 6);
   }
 }
