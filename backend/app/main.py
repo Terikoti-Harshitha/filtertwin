@@ -96,6 +96,11 @@ app.include_router(evaluations.router, prefix=settings.API_V1_STR)
 app.include_router(maintenance.router, prefix=settings.API_V1_STR)
 app.include_router(models.router, prefix=settings.API_V1_STR)
 
+@app.get(f"{settings.API_V1_STR}/telemetry/ingest", tags=["Telemetry"])
+def direct_telemetry_info():
+    """Direct alias GET endpoint confirming telemetry receiver status for browser visitors."""
+    return simulations.telemetry_ingest_info()
+
 @app.post(f"{settings.API_V1_STR}/telemetry/ingest", tags=["Telemetry"], status_code=201)
 def direct_telemetry_ingest(data: simulations.TelemetryIngestRequest, db: Session = Depends(get_db)):
     """Direct alias endpoint for ESP32 / Wokwi virtual hardware telemetry ingestion."""

@@ -224,19 +224,23 @@ void sendTelemetryHttp(float inlet, float outlet, float flow, float rej, String 
 
   // HTTP POST if connected
   if (WiFi.status() == WL_CONNECTED) {
-    WiFiClientSecure client;
-    client.setInsecure(); // Required for ESP32 HTTPS validation without root CA certificate
-    HTTPClient http;
-    http.begin(client, backendUrl);
-    http.addHeader("Content-Type", "application/json");
-    
-    int httpResponseCode = http.POST(jsonPayload);
-    if (httpResponseCode > 0) {
-      Serial.printf("[HTTP] Ingestion response code: %d (Successfully ingested into FilterTwin!)\n", httpResponseCode);
-    } else {
-      Serial.printf("[HTTP] Error sending telemetry: %s\n", http.errorToString(httpResponseCode).c_str());
+    WiFiClientSecure *client = new WiFiClientSecure;
+    if (client) {
+      client->setInsecure(); // Required for ESP32 HTTPS validation without root CA certificate
+      HTTPClient http;
+      http.begin(*client, backendUrl);
+      http.addHeader("Content-Type", "application/json");
+      http.addHeader("User-Agent", "ESP32-FilterTwin");
+      
+      int httpResponseCode = http.POST(jsonPayload);
+      if (httpResponseCode > 0) {
+        Serial.printf("[HTTP] Ingestion response code: %d (Successfully ingested into FilterTwin!)\n", httpResponseCode);
+      } else {
+        Serial.printf("[HTTP] Error sending telemetry: %s\n", http.errorToString(httpResponseCode).c_str());
+      }
+      http.end();
+      delete client;
     }
-    http.end();
   } else {
     Serial.println("[WiFi] Reconnecting to Wokwi-GUEST...");
     WiFi.begin(ssid, password, 6);

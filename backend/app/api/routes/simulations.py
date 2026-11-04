@@ -104,6 +104,24 @@ def reset_simulation(sim_id: str, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "idle", "message": "Simulation reset to day 0"}
 
+@router.get("/telemetry/ingest", tags=["Simulations"])
+def telemetry_ingest_info():
+    """Information endpoint confirming telemetry receiver status for browser visitors."""
+    return {
+        "status": "online",
+        "service": "FilterTwin IoT Ingestion Receiver",
+        "description": "Ready to accept live sensor telemetry from physical ESP32 or Wokwi virtual hardware.",
+        "method_required": "POST",
+        "sample_payload": {
+            "device_id": "wokwi-esp32-01",
+            "flow_rate_lpm": 2.1,
+            "inlet_tds_ppm": 550.0,
+            "outlet_tds_ppm": 38.0,
+            "rejection_percentage": 93.1,
+            "sensor_status": "normal"
+        }
+    }
+
 @router.post("/telemetry/ingest", status_code=status.HTTP_201_CREATED)
 def ingest_telemetry(data: TelemetryIngestRequest, db: Session = Depends(get_db)):
     """
